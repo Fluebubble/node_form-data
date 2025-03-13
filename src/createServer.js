@@ -6,7 +6,7 @@ const fs = require('fs');
 function createServer() {
   /* Write your code here */
   // Return instance of http.Server class
-  const server = http.Server(async (req, res) => {
+  const server = http.createServer(async (req, res) => {
     const url = new URL(req.url, `http://${req.headers.host}`);
 
     if (url.pathname !== '/add-expense') {
@@ -27,18 +27,18 @@ function createServer() {
       const { date, title, amount } = JSON.parse(formData);
 
       if (!date || !title || !amount) {
-        res.statusCode = 400;
+        res.statusCode = 404;
 
-        res.end('No correct data recieved');
+        res.end('No data recieved');
 
         return;
       }
 
       fs.writeFile('./db/expense.json', formData, (error) => {
         if (error) {
-          res.statusCode = 400;
+          res.statusCode = 500;
 
-          res.end(error);
+          res.end('error saving data');
 
           return;
         }
@@ -47,7 +47,10 @@ function createServer() {
         res.setHeader('Content-Type', 'application/json');
         res.end(formData);
       });
-    } catch (error) {}
+    } catch (error) {
+      res.statusCode = 400;
+      res.end(`${error} error`);
+    }
   });
 
   return server;
